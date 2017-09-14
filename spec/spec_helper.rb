@@ -1,5 +1,9 @@
 require "bundler/setup"
+require "pry"
 require "crypto_env_var"
+
+support_files = File.expand_path("../support/**/*.rb", __FILE__)
+Dir[support_files].each { |f| require f }
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
@@ -11,4 +15,6 @@ RSpec.configure do |config|
   config.expect_with :rspec do |c|
     c.syntax = :expect
   end
+
+  config.include SharedHelpers
 end
