@@ -38,7 +38,7 @@ RSpec.describe CryptoEnvVar::Cipher do
     it "can't encrypt" do
       expect {
         subject.encrypt(plaintext)
-      }.to raise_error OpenSSL::PKey::RSAError, "private key needed"
+      }.to raise_error OpenSSL::PKey::RSAError, /private key needed/
     end
 
     it "can't decrypt a ciphertext generated with a different private key" do
@@ -51,7 +51,7 @@ RSpec.describe CryptoEnvVar::Cipher do
 
       expect {
         subject.decrypt(other_cyphertext)
-      }.to raise_error OpenSSL::PKey::RSAError, "padding check failed"
+      }.to raise_error OpenSSL::PKey::RSAError, /padding check failed/
     end
   end
 end
