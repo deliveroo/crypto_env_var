@@ -7,20 +7,14 @@ module CryptoEnvVar
   class << self
     def encrypt(data, private_key_string)
       json = Utils.serialize(data)
-
       cipher = Cipher.new(private_key_string)
-      encrypted_data = cipher.encrypt(json)
-
-      Utils.encode(encrypted_data)
+      cipher.encrypt(json)
     end
 
 
     def decrypt(string, public_key_string)
-      encrypted_data = Utils.decode(string)
-
       cipher = Cipher.new(public_key_string)
-      json = cipher.decrypt(encrypted_data)
-
+      json = cipher.decrypt(string)
       Utils.deserialize(json)
     end
   end

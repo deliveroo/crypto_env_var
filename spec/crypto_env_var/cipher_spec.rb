@@ -54,11 +54,11 @@ RSpec.describe CryptoEnvVar::Cipher do
     end
 
     it "can't decrypt a ciphertext generated with a different private key" do
-      other_private_key = OpenSSL::PKey::RSA.generate(2048)
-      other_cyphertext = other_private_key.private_encrypt(plaintext)
+      other_cipher = described_class.new(OpenSSL::PKey::RSA.generate(2048))
+      other_cyphertext = other_cipher.encrypt(plaintext)
 
       expect(
-        other_private_key.public_decrypt(other_cyphertext)
+        other_cipher.decrypt(other_cyphertext)
       ).to eql plaintext
 
       expect {
