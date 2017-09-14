@@ -20,6 +20,18 @@ RSpec.describe CryptoEnvVar::Cipher do
       out = subject.decrypt(ciphertext)
       expect(out).to eq plaintext
     end
+
+    describe "with a plaintext larger than the key size" do
+      let(:plaintext) { super() * 20 }
+
+      it "can encrypt and decrypt a text" do
+        ciphertext = subject.encrypt(plaintext)
+        expect(ciphertext).to_not eq plaintext
+
+        out = subject.decrypt(ciphertext)
+        expect(out).to eq plaintext
+      end
+    end
   end
 
 
