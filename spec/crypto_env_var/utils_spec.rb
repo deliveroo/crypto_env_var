@@ -56,6 +56,3 @@ RSpec.describe CryptoEnvVar::Utils do
     end
   end
 end
-
-
-
