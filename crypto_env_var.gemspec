@@ -9,8 +9,11 @@ Gem::Specification.new do |spec|
   spec.authors       = ["Tommaso Pavese"]
   spec.email         = ["tommaso.pavese@deliveroo.co.uk"]
 
-  spec.summary       = %q{TODO: Write a short summary, because Rubygems requires one.}
-  spec.description   = %q{TODO: Write a longer description or delete this line.}
+  spec.summary       = %q{Utilities to protect the application env}
+  spec.description   = <<-EOS
+  Utilities to protect the application env.
+  Use an keypair to encrypt an env Hash to a blob and populate ENV from the encryped blob.
+  EOS
   spec.homepage      = "TODO: Put your gem's website or public repo URL here."
 
   # Prevent pushing this gem to RubyGems.org. To allow pushes either set the 'allowed_push_host'
