@@ -4,6 +4,7 @@ module CryptoEnvVar
   class Cipher
     SEPARATOR = "--".freeze
     DIGEST_SEPARATOR = "----".freeze
+    VERSION = "v1".freeze # To support multiple versions in the future
 
 
     # Can be initialized with a private or public
@@ -33,7 +34,7 @@ module CryptoEnvVar
       ciphertext = encode(ciphertext)
       key        = encode(rsa_encrypt(key))
       iv         = encode(iv)
-      payload    = [key, iv, ciphertext].join(SEPARATOR)
+      payload    = [VERSION, key, iv, ciphertext].join(SEPARATOR)
       digest     = encode(rsa_encrypt(sha2_digest(payload)))
 
       [payload, digest].join(DIGEST_SEPARATOR)
@@ -54,7 +55,7 @@ module CryptoEnvVar
       digest = rsa_decrypt(decode(digest))
       validate_digest!(payload, digest)
 
-      key, iv, ciphertext = payload.split(SEPARATOR)
+      _version, key, iv, ciphertext = payload.split(SEPARATOR)
 
       ciphertext = decode(ciphertext)
       key        = rsa_decrypt(decode(key))
