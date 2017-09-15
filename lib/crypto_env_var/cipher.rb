@@ -3,6 +3,8 @@ require "openssl"
 module CryptoEnvVar
   class Cipher
     SEPARATOR = "--".freeze
+    DIGEST_SEPARATOR = "----".freeze
+
 
     def initialize(key_string)
       @key = OpenSSL::PKey::RSA.new(key_string)
@@ -10,30 +12,31 @@ module CryptoEnvVar
 
 
     def encrypt(plaintext)
-      digest = sha2_digest(plaintext)
       ciphertext, key, iv = aes_encrypt(plaintext)
 
       ciphertext = encode(ciphertext)
       key        = encode(rsa_encrypt(key))
       iv         = encode(iv)
-      digest     = encode(digest)
+      payload    = [key, iv, ciphertext].join(SEPARATOR)
+      digest     = encode(rsa_encrypt(sha2_digest(payload)))
 
-      [key, iv, ciphertext, digest].join(SEPARATOR)
+      [payload, digest].join(DIGEST_SEPARATOR)
     end
 
 
-    def decrypt(ciphertext)
-      key, iv, ciphertext, digest = ciphertext.split(SEPARATOR)
+    def decrypt(data)
+      payload, digest = data.split(DIGEST_SEPARATOR)
+
+      digest = rsa_decrypt(decode(digest))
+      validate_digest!(payload, digest)
+
+      key, iv, ciphertext = payload.split(SEPARATOR)
 
       ciphertext = decode(ciphertext)
       key        = rsa_decrypt(decode(key))
       iv         = decode(iv)
-      digest     = decode(digest)
-      plaintext  = aes_decrypt(ciphertext, key, iv)
 
-      validate_digest!(plaintext, digest)
-
-      plaintext
+      aes_decrypt(ciphertext, key, iv)
     end
 
 
@@ -104,9 +107,10 @@ module CryptoEnvVar
       Utils.decode(data)
     end
 
+
     class DigestVerificationError < StandardError
       def message
-        "Decryption successful, but the message has been tampered with"
+        "The payload has been tampered with."
       end
     end
   end
