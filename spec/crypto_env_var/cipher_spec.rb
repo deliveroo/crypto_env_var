@@ -10,6 +10,38 @@ RSpec.describe CryptoEnvVar::Cipher do
     EOS
   end
 
+  shared_examples_for "message integrity verification" do
+    describe "when the encrypted payload has been tampered with" do
+      describe "invalid encoding" do
+        let(:tampered_payload) do
+          data = described_class.new(private_key).encrypt(plaintext)
+          data + "a"
+        end
+
+        it "fails early with a MessagePack verification error" do
+          expect {
+            subject.decrypt(tampered_payload)
+          }.to raise_error MessagePack::MalformedFormatError
+        end
+      end
+
+      describe "when the encoding is correct, but the message has been modified" do
+        let(:tampered_payload) do
+          data = described_class.new(private_key).encrypt(plaintext)
+          payload, digest = MessagePack.unpack(data)
+          [payload + "a", digest].to_msgpack
+        end
+
+        it "fails early with a digest verification error" do
+          expect {
+            subject.decrypt(tampered_payload)
+          }.to raise_error CryptoEnvVar::Cipher::DigestVerificationError
+        end
+      end
+    end
+  end
+
+
   describe "a Cipher initialized with a private key" do
     subject { described_class.new(private_key) }
 
@@ -20,6 +52,20 @@ RSpec.describe CryptoEnvVar::Cipher do
       out = subject.decrypt(ciphertext)
       expect(out).to eq plaintext
     end
+
+    describe "with a plaintext larger than the key size" do
+      let(:plaintext) { super() * 20 }
+
+      it "can encrypt and decrypt a text" do
+        ciphertext = subject.encrypt(plaintext)
+        expect(ciphertext).to_not eq plaintext
+
+        out = subject.decrypt(ciphertext)
+        expect(out).to eq plaintext
+      end
+    end
+
+    include_examples "message integrity verification"    
   end
 
 
@@ -41,12 +87,14 @@ RSpec.describe CryptoEnvVar::Cipher do
       }.to raise_error OpenSSL::PKey::RSAError, /private key needed/
     end
 
+    include_examples "message integrity verification"
+
     it "can't decrypt a ciphertext generated with a different private key" do
-      other_private_key = OpenSSL::PKey::RSA.generate(2048)
-      other_cyphertext = other_private_key.private_encrypt(plaintext)
+      other_cipher = described_class.new(OpenSSL::PKey::RSA.generate(2048))
+      other_cyphertext = other_cipher.encrypt(plaintext)
 
       expect(
-        other_private_key.public_decrypt(other_cyphertext)
+        other_cipher.decrypt(other_cyphertext)
       ).to eql plaintext
 
       expect {
