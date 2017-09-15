@@ -123,16 +123,6 @@ module CryptoEnvVar
     end
 
 
-    def encode(data)
-      Utils.encode(data)
-    end
-
-
-    def decode(data)
-      Utils.decode(data)
-    end
-
-
     class DigestVerificationError < StandardError
       def message
         "The payload has been tampered with."
