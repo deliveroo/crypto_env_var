@@ -112,7 +112,7 @@ module CryptoEnvVar
 
 
     def sha2_digest(data)
-      OpenSSL::Digest::SHA256.new.digest(data)
+      OpenSSL::Digest::SHA512.new.digest(data)
     end
 
 
