@@ -6,11 +6,27 @@ module CryptoEnvVar
     DIGEST_SEPARATOR = "----".freeze
 
 
+    # Can be initialized with a private or public
+    # RSA key.
+    # - private: encrypt and decrypt.
+    # - public: decrypt only.
+    #
     def initialize(key_string)
       @key = OpenSSL::PKey::RSA.new(key_string)
     end
 
 
+    # Encrypt the plaintext with symmetric AES.
+    #
+    # Encrypt the AES key with the private RSA key.
+    #
+    # Join the encrypted text, the encrypted key and
+    # the initialization vector in a payload string.
+    #
+    # Get a digest of the the payload, then encrypt
+    # it with the private RSA key and append it to
+    # the payload.
+    #
     def encrypt(plaintext)
       ciphertext, key, iv = aes_encrypt(plaintext)
 
@@ -24,6 +40,14 @@ module CryptoEnvVar
     end
 
 
+    # Extract the digest, decrypt it with the RSA
+    # public key, then validate the integrity of the
+    # rest of the payload.
+    #
+    # Decrypt the AES key with the RSA public key.
+    #
+    # Decrypt the ciphertext with symmetric AES.
+    #
     def decrypt(data)
       payload, digest = data.split(DIGEST_SEPARATOR)
 
@@ -60,10 +84,10 @@ module CryptoEnvVar
     end
 
 
-    # AES simmetric encryption.
+    # AES symmetric encryption.
     #
     def aes_encrypt(plaintext)
-      cipher = OpenSSL::Cipher::AES256.new(:CBC)
+      cipher = build_aes_ciper
       cipher.encrypt
       key = cipher.random_key
       iv = cipher.random_iv
@@ -74,15 +98,20 @@ module CryptoEnvVar
     end
 
 
-    # AES simmetric decryption.
+    # AES symmetric decryption.
     #
     def aes_decrypt(ciphertext, key, iv)
-      cipher = OpenSSL::Cipher::AES256.new(:CBC)
+      cipher = build_aes_ciper
       cipher.decrypt
       cipher.key = key
       cipher.iv = iv
       
       cipher.update(ciphertext) + cipher.final
+    end
+
+
+    def build_aes_ciper
+      OpenSSL::Cipher::AES256.new(:CBC)
     end
 
 
