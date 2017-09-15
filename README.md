@@ -4,7 +4,7 @@
 
 **CryptoEnvVar** provides:
 
-* [Asymmetric encription](#asymmetric-encryption) of JSON-serializable Ruby objects (Hash, Array, etc) using a RSA keypair.
+* [Asymmetric encryption](#asymmetric-encryption) of JSON-serializable Ruby objects using a RSA keypair.
 * [Secrets management for the Ruby ENV](#secrets-management-for-the-ruby-env).
 
 ## Asymmetric Encryption
