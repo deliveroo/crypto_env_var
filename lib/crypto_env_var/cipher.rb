@@ -1,9 +1,8 @@
 require "openssl"
+require "msgpack"
 
 module CryptoEnvVar
   class Cipher
-    SEPARATOR = "--".freeze
-    DIGEST_SEPARATOR = "----".freeze
     VERSION = "v1".freeze # To support multiple versions in the future
 
 
@@ -31,13 +30,11 @@ module CryptoEnvVar
     def encrypt(plaintext)
       ciphertext, key, iv = aes_encrypt(plaintext)
 
-      ciphertext = encode(ciphertext)
-      key        = encode(rsa_encrypt(key))
-      iv         = encode(iv)
-      payload    = [VERSION, key, iv, ciphertext].join(SEPARATOR)
-      digest     = encode(rsa_encrypt(sha2_digest(payload)))
+      key     = rsa_encrypt(key)
+      payload = [VERSION, key, iv, ciphertext].to_msgpack
+      digest  = rsa_encrypt(sha2_digest(payload))
 
-      [payload, digest].join(DIGEST_SEPARATOR)
+      [payload, digest].to_msgpack
     end
 
 
@@ -50,16 +47,14 @@ module CryptoEnvVar
     # Decrypt the ciphertext with symmetric AES.
     #
     def decrypt(data)
-      payload, digest = data.split(DIGEST_SEPARATOR)
+      payload, digest = MessagePack.unpack(data)
 
-      digest = rsa_decrypt(decode(digest))
+      digest = rsa_decrypt(digest)
       validate_digest!(payload, digest)
 
-      _version, key, iv, ciphertext = payload.split(SEPARATOR)
+      _version, key, iv, ciphertext = MessagePack.unpack(payload)
 
-      ciphertext = decode(ciphertext)
-      key        = rsa_decrypt(decode(key))
-      iv         = decode(iv)
+      key = rsa_decrypt(key)
 
       aes_decrypt(ciphertext, key, iv)
     end

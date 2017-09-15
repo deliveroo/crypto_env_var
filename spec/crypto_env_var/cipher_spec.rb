@@ -12,16 +12,31 @@ RSpec.describe CryptoEnvVar::Cipher do
 
   shared_examples_for "message integrity verification" do
     describe "when the encrypted payload has been tampered with" do
-      let(:tampered_payload) do
-        data = described_class.new(private_key).encrypt(plaintext)
-        data[1], data[2] = data[2], data[1]
-        data
+      describe "invalid encoding" do
+        let(:tampered_payload) do
+          data = described_class.new(private_key).encrypt(plaintext)
+          data + "a"
+        end
+
+        it "fails early with a MessagePack verification error" do
+          expect {
+            subject.decrypt(tampered_payload)
+          }.to raise_error MessagePack::MalformedFormatError
+        end
       end
 
-      it "fails early with a digest verification error" do
-        expect {
-          subject.decrypt(tampered_payload)
-        }.to raise_error CryptoEnvVar::Cipher::DigestVerificationError
+      describe "when the encoding is correct, but the message has been modified" do
+        let(:tampered_payload) do
+          data = described_class.new(private_key).encrypt(plaintext)
+          payload, digest = MessagePack.unpack(data)
+          [payload + "a", digest].to_msgpack
+        end
+
+        it "fails early with a digest verification error" do
+          expect {
+            subject.decrypt(tampered_payload)
+          }.to raise_error CryptoEnvVar::Cipher::DigestVerificationError
+        end
       end
     end
   end
