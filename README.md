@@ -114,6 +114,22 @@ openssl rsa -pubout -in private_key.pem -out public_key.pem
 
 Please note that the public key is **NOT** the same thing as the SSH public key file [normally generated with `ssh-keygen`](https://help.github.com/articles/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent/). You can still use a private RSA key generated with `ssh-keygen`, but then you have to extract the public key with the `openssl` command shown above.
 
+Alternatively, you can use the [OpenSSL classes](http://ruby-doc.org/stdlib-2.4.1/libdoc/openssl/rdoc/OpenSSL/PKey/RSA.html) from the Ruby standard library:
+
+```ruby
+require "openssl"
+
+new_keypair     = OpenSSL::PKey::RSA.generate(2048)
+new_private_key = new_keypair.to_s
+new_public_key  = new_keypair.public_key.to_s
+
+imported_keypair     = OpenSSL::PKey::RSA.new(File.read("private_rsa_key.pem"))
+imported_private_key = imported_keypair.to_s
+imported_public_key  = imported_keypair.public_key.to_s
+
+imported_private_key == File.read("private_rsa_key.pem") # true
+```
+
 
 ## Installation
 
