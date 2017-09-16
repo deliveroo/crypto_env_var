@@ -19,10 +19,10 @@ rsa_public_key_string  = File.read("path/to/rsa_key.pub.pem")
 
 data = { "foo" => 42, "bar" => [1, 3, 3, 7], "baz" => true }
 
-encrypted_string = CryptoEnvVar.encrypt(data, rsa_private_key_string)
-decrypted_string = CryptoEnvVar.decrypt(encrypted, rsa_public_key_string)
+ciphertext = CryptoEnvVar.encrypt(data, rsa_private_key_string)
+plaintext  = CryptoEnvVar.decrypt(ciphertext, rsa_public_key_string)
 
-data == decrypted_string # true
+data == plaintext # true
 ```
 
 While the public key can only be used to decrypt, the private key can be used to both encrypt and decrypt:
@@ -36,11 +36,11 @@ a == b && a == data # true
 
 ## Secrets management for the Ruby ENV
 
-A common practice in when deploying applications is to customize their runtime behaviour by providing configuration in the system ENV.
+A common practice when deploying applications is to customize their runtime behaviour by providing configuration in the system ENV.
 
 Often this means that something, at some point, needs to get the raw configuration values and set them on the machine (or container, or Heroku dyno) that will run the application. Since the configuration usually contains sensitive values, for example database passwords and other auth credentials, this is less than ideal.
 
-A solution is to encrypt the configuration data, set it in the ENV encrypted, and then allow the application to decrypt when it boots. This library aims to make this pattern easier to adopt.
+A solution is to encrypt the configuration data, set it in the ENV encrypted, and then allow the application to decrypt it when it boots. This library aims to make this pattern easier to adopt.
 
 First off, the app configuration needs to be encrypted. This should ideally be done by an automated tool. For example:
 
