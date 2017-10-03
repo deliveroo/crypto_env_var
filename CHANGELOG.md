@@ -1,6 +1,6 @@
 # CryptoEnvVar Changelog
 
-## Unreleased
+## v1.0.0
 
 * Initial release
 * Asymmetric encryption and decryption functions
