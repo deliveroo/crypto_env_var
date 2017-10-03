@@ -12,7 +12,7 @@ Gem::Specification.new do |spec|
   spec.summary       = %q{Utilities to protect the application env}
   spec.description   = <<-EOS
   Utilities to protect the application env.
-  Use an keypair to encrypt an env Hash to a blob and populate ENV from the encryped blob.
+  Use a keypair to encrypt an env Hash to a blob and populate the process ENV from the encryped blob.
   EOS
   spec.homepage      = "https://github.com/deliveroo/crypto_env_var"
 

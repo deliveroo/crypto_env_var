@@ -1,6 +1,6 @@
 # CryptoEnvVar
 
-[![Build Status](https://travis-ci.org/deliveroo/crypto_env_var.svg?branch=master)](https://travis-ci.org/deliveroo/crypto_env_var)
+[![Build Status](https://travis-ci.org/deliveroo/crypto_env_var.svg?branch=master)](https://travis-ci.org/deliveroo/crypto_env_var) [![Gem Version](https://badge.fury.io/rb/crypto_env_var.svg)](https://badge.fury.io/rb/crypto_env_var)
 
 **CryptoEnvVar** provides:
 
