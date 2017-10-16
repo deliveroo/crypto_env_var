@@ -1,0 +1,17 @@
+require: rubocop-rspec
+
+Style/Documentation:
+  Enabled: false
+
+Layout/SpaceInsideHashLiteralBraces:
+  EnforcedStyle: no_space
+
+Style/TrailingCommaInArguments:
+  EnforcedStyleForMultiline: comma
+
+Style/TrailingCommaInLiteral:
+  EnforcedStyleForMultiline: comma
+
+Metrics/BlockLength:
+  Exclude:
+    - spec/**/*.rb
