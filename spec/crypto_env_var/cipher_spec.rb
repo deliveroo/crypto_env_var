@@ -1,105 +1,32 @@
-require "spec_helper"
+require 'spec_helper'
 
 RSpec.describe CryptoEnvVar::Cipher do
+  let(:aes_key) { OpenSSL::Cipher::AES256.new(:CBC).random_key }
+  let(:cipher)  { described_class.new(aes_key) }
   let(:plaintext) do
-    <<-EOS
-    How much wood could a woodchuck chuck 
-    If a woodchuck could chuck wood? 
-    As much wood as a woodchuck could chuck, 
+    <<-PLAINTEXT
+    How much wood could a woodchuck chuck
+    If a woodchuck could chuck wood?
+    As much wood as a woodchuck could chuck,
     If a woodchuck could chuck wood.
-    EOS
+    PLAINTEXT
   end
 
-  shared_examples_for "message integrity verification" do
-    describe "when the encrypted payload has been tampered with" do
-      describe "invalid encoding" do
-        let(:tampered_payload) do
-          data = described_class.new(private_key).encrypt(plaintext)
-          data + "a"
-        end
+  describe 'round trip' do
+    let(:encrypted) { cipher.encrypt(plaintext) }
+    let(:decrypted) { decipher.decrypt(encrypted) }
 
-        it "fails early with a MessagePack verification error" do
-          expect {
-            subject.decrypt(tampered_payload)
-          }.to raise_error MessagePack::MalformedFormatError
-        end
-      end
+    context 'with the same AES key' do
+      let(:decipher) { described_class.new(aes_key) }
 
-      describe "when the encoding is correct, but the message has been modified" do
-        let(:tampered_payload) do
-          data = described_class.new(private_key).encrypt(plaintext)
-          payload, digest = MessagePack.unpack(data)
-          [payload + "a", digest].to_msgpack
-        end
-
-        it "fails early with a digest verification error" do
-          expect {
-            subject.decrypt(tampered_payload)
-          }.to raise_error CryptoEnvVar::Cipher::DigestVerificationError
-        end
-      end
-    end
-  end
-
-
-  describe "a Cipher initialized with a private key" do
-    subject { described_class.new(private_key) }
-
-    it "can encrypt and decrypt a text" do
-      ciphertext = subject.encrypt(plaintext)
-      expect(ciphertext).to_not eq plaintext
-
-      out = subject.decrypt(ciphertext)
-      expect(out).to eq plaintext
+      it { expect(decrypted).to eq plaintext }
     end
 
-    describe "with a plaintext larger than the key size" do
-      let(:plaintext) { super() * 20 }
+    context 'with a different AES key' do
+      let(:other_key) { OpenSSL::Cipher::AES256.new(:CBC).random_key }
+      let(:decipher) { described_class.new(other_key) }
 
-      it "can encrypt and decrypt a text" do
-        ciphertext = subject.encrypt(plaintext)
-        expect(ciphertext).to_not eq plaintext
-
-        out = subject.decrypt(ciphertext)
-        expect(out).to eq plaintext
-      end
-    end
-
-    include_examples "message integrity verification"    
-  end
-
-
-  describe "a Cipher initialized with a public key" do
-    subject { described_class.new(public_key) }
-
-    let(:ciphertext) do
-      described_class.new(private_key).encrypt(plaintext)
-    end
-
-    it "can decrypt a ciphertext encrypted with the matching private key" do
-      out = subject.decrypt(ciphertext)
-      expect(out).to eq plaintext
-    end
-
-    it "can't encrypt" do
-      expect {
-        subject.encrypt(plaintext)
-      }.to raise_error OpenSSL::PKey::RSAError, /private key needed/
-    end
-
-    include_examples "message integrity verification"
-
-    it "can't decrypt a ciphertext generated with a different private key" do
-      other_cipher = described_class.new(OpenSSL::PKey::RSA.generate(2048))
-      other_cyphertext = other_cipher.encrypt(plaintext)
-
-      expect(
-        other_cipher.decrypt(other_cyphertext)
-      ).to eql plaintext
-
-      expect {
-        subject.decrypt(other_cyphertext)
-      }.to raise_error OpenSSL::PKey::RSAError, /padding check failed/
+      it { expect { decrypted }.to raise_error OpenSSL::Cipher::CipherError }
     end
   end
 end
