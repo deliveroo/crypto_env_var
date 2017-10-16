@@ -1,11 +1,11 @@
 #!/usr/bin/env ruby
 
-require 'bundler/setup'
-require 'pry'
+require "bundler/setup"
+require "pry"
 
-require 'crypto_env_var'
+require "crypto_env_var"
 
-require File.expand_path('../../spec/support/shared_helpers.rb', __FILE__)
+require File.expand_path("../../spec/support/shared_helpers.rb", __FILE__)
 include SharedHelpers
 
 Pry.start

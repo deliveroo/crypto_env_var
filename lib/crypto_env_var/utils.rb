@@ -1,5 +1,5 @@
-require 'json'
-require 'base64'
+require "json"
+require "base64"
 
 module CryptoEnvVar
   module Utils
@@ -9,7 +9,7 @@ module CryptoEnvVar
       end
 
       def deserialize(string)
-        JSON.parse(string)
+        JSON.load(string)
       end
 
       def encode(string)
